@@ -3,8 +3,8 @@
  * the user scroll down, and gives it its original position when back to top.
  * 
  * Usage is simple : 
- * new FollowMe('id') ;
- * new FollowMed('id',{option : value});
+ * new ScrollFollower('id') ;
+ * new ScrollFollower('id',{option : value});
  * 
  * Options :
  * - autoGhost (bool) : generate or not a ghost for not absolutized element
@@ -20,7 +20,7 @@
  * @copyright	Copyright 2011, Sébastien Charrier (http://sebastien-charrier.com)
  * @license		http://opensource.org/licenses/bsd-license.php The BSD License
  */
-FollowMe = Class.create({
+ScrollFollower = Class.create({
 	/**
 	 * The element we want to follow us
 	 * 
