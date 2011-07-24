@@ -7,7 +7,7 @@ I hope you will find something usefull there !
 
 Sébastien
 
-# ScrollFollower
+## ScrollFollower
 
 ScrollFollower is a Prototype.js class, wich gives the ability to create elements with the new Gmail toolbar behavior : 
 element become fixed when the user scroll down, and get back its initial position when he backs to top.
