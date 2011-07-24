@@ -4,9 +4,15 @@
  * 
  * Usage is simple : 
  * new FollowMe('id') ;
+ * new FollowMed('id',{option : value});
+ * 
+ * Options :
+ * - autoGhost (bool) : generate or not a ghost for not absolutized element
+ * - fixedClass (string) : css class to add when the element is fixed
+ * - absolutizedClass (string) : css class to add when the element is absolutized
  * 
  * Notes : 
- * - Require Prototype.js (jQuery as it's own tools)
+ * - Require Prototype.js (jQuery has its own tools)
  * - IE6 don't support the css "fixed" position, so you should avoid using this class with it.
  * - I wrote that code in a few minutes and I didn't test it a lot, so it's certainly a little buggy.
  * 
@@ -21,6 +27,13 @@ FollowMe = Class.create({
 	 * @var Element
 	 */
 	_main : null,
+	
+	/**
+	 * Options
+	 * 
+	 * @var Object
+	 */
+	_options : null,
 	
 	/**
 	 * The ghost, for cases where the main element is not absolute : it's
@@ -42,24 +55,32 @@ FollowMe = Class.create({
 	 * 
 	 * @param	Mixed	Id of the element, or the element (String or Element)
 	 */
-	initialize : function(id) {
+	initialize : function(id, options) {
 		this._main = $(id) ;
 		
 		if (!this._main) {
 			throw 'Element #' + id + ' doesn\'t exist' ;
 		}
 		
+		this._options = $H({
+			'autoGhost' : true,
+			'fixedClass' : 'follow_me_fixed',
+			'absolutizedClass' : 'follow_me_absolutized'
+		}).merge(options).toObject() ;
+		
 		// Save the initial offset
 		this._initialTop = this._main.cumulativeOffset().top ;
 		
 		// If the element is not already absolutized, let's Prototype.js do it
-		if (this._main.style.position !== 'absolute') {
+		if (this._options.autoGhost, this._main.style.position !== 'absolute') {
 			this._ghost = this._main.clone() ;
 			this._ghost.style.height = this._main.getHeight() + 'px' ;
 			this._ghost.style.width = this._main.getWidth() + 'px' ;
 			this._main.insert({after:this._ghost}) ;
 			this._main.absolutize() ;
 		}
+		
+		this._main.addClassName(this._options.absolutizedClass) ;
 		
 		// On scroll : yea baby, keep my toolbar in place
 		Event.observe(window, 'scroll', this._scroll.bind(this)) ;
@@ -74,14 +95,14 @@ FollowMe = Class.create({
 			// Ok, fix it !
 			this._main.style.position = 'fixed' ;
 			this._main.style.top = 0 ;
-			this._main.addClassName('follow_me_fixed') ;
-			this._main.removeClassName('follow_me_absolutized') ;
+			this._main.addClassName(this._options.fixedClass) ;
+			this._main.removeClassName(this._options.absolutizedClass) ;
 		} else {
 			// Back to initial : absolutize it
 			this._main.style.position = 'absolute' ;
 			this._main.style.top = this._initialTop + 'px' ;
-			this._main.addClassName('follow_me_absolutized') ;
-			this._main.removeClassName('follow_me_fixed') ;
+			this._main.addClassName(this._options.absolutizedClass) ;
+			this._main.removeClassName(this._options.fixedClass) ;
 		}
 	}
 }) ;
