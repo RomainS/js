@@ -15,6 +15,7 @@ ScrollFollower is a Prototype.js class, wich gives the ability to create element
 element becomes fixed when the user scrolls down, and gets back its initial position when he scrolls to top.
 
 Usage :
+
 	Event.observe(document,'dom:loaded', function() {
 		var follower = new ScrollFollower('id',{
 			autoGhost : true,
