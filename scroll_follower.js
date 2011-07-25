@@ -46,9 +46,37 @@ ScrollFollower = Class.create({
 	/**
 	 * Initial top offset of the main element.
 	 * 
-	 * @var Integer
+	 * @var Object
 	 */
-	_initialTop : null,
+	_fixedOffset : null,
+	
+	/**
+	 * Offset relative to first parent
+	 * 
+	 * @var Object
+	 */ 
+	_positionedOffset : null,
+	
+	/**
+	 * Offset of the first relative parent
+	 * 
+	 * @var Object
+	 */ 
+	_parentOffset : null,
+	
+	/**
+	 * Calculated top offset
+	 * 
+	 * @var Integer
+	 */ 
+	_top : null,
+	
+	/**
+	 * Flag : actually fixed or not ?
+	 *
+	 * @var bool
+	 */  
+	_fixed : false, 
 	
 	/**
 	 * Constructor
@@ -64,26 +92,37 @@ ScrollFollower = Class.create({
 		
 		this._options = $H({
 			'autoGhost' : true,
-			'fixedClass' : 'scroll_follower_fixed',
-			'absolutizedClass' : 'scroll_follower_absolutized'
+			'fixedClass' : 'scroll_follower_fixed'
 		}).merge(options).toObject() ;
 		
-		// Save the initial offset
-		this._initialTop = this._main.cumulativeOffset().top ;
-		
-		// If the element is not already absolutized, let's Prototype.js do it
-		if (this._options.autoGhost, this._main.style.position !== 'absolute') {
-			this._ghost = this._main.clone() ;
-			this._ghost.style.height = this._main.getHeight() + 'px' ;
-			this._ghost.style.width = this._main.getWidth() + 'px' ;
-			this._main.insert({after:this._ghost}) ;
-			this._main.absolutize() ;
-		}
-		
-		this._main.addClassName(this._options.absolutizedClass) ;
+		// Initialize style properties and offsets
+		this._initialize() ;
 		
 		// On scroll : yea baby, keep my toolbar in place
 		Event.observe(window, 'scroll', this._scroll.bind(this)) ;
+	},
+	
+	/**
+	 * Initialize style properties and offsets
+	 */ 
+	_initialize : function() {
+		// Initial offset
+		this._fixedOffset = this._main.cumulativeOffset() ;
+		this._positionedOffset = this._main.positionedOffset() ;
+		this._parentOffset = this._main.getOffsetParent().cumulativeOffset() ;
+		this._top = this._positionedOffset.top - this._main.getHeight() ;
+		
+		// Save the initial style properties we'll have to overwrite
+		var properties = $H({'position' : 'static'}) ;
+		if (this._main.style.position) { properties.set('position', this._main.style.position) ; }
+		if (this._main.style.top) { properties.set('top', this._main.style.top) ; }
+		if (this._main.style.left) { properties.set('left', this._main.style.left) ; }
+		 
+		this._initialProperties = properties;
+		
+		// Fix the dimensions
+		this._main.style.height = this._main.getHeight() + 'px' ;
+		this._main.style.width = this._main.getWidth() + 'px' ;
 	},
 	
 	/**
@@ -91,18 +130,49 @@ ScrollFollower = Class.create({
 	 * or absolutized.
 	 */
 	_scroll : function() {
-		if (this._main.cumulativeScrollOffset().top > this._initialTop) {
+		if (!this._fixed && this._scrollOffset().top > this._top) {
 			// Ok, fix it !
-			this._main.style.position = 'fixed' ;
-			this._main.style.top = 0 ;
-			this._main.addClassName(this._options.fixedClass) ;
-			this._main.removeClassName(this._options.absolutizedClass) ;
-		} else {
+			this._fix() ;
+			
+		} else if (this._fixed && this._scrollOffset().top <= this._top) {
 			// Back to initial : absolutize it
-			this._main.style.position = 'absolute' ;
-			this._main.style.top = this._initialTop + 'px' ;
-			this._main.addClassName(this._options.absolutizedClass) ;
-			this._main.removeClassName(this._options.fixedClass) ;
+			this._reset() ;
+			
 		}
+	},
+	
+	/**
+	 * Fix the element
+	 */
+	_fix : function() {
+		this._main.style.position = 'fixed' ;
+		this._main.style.top = 0 ;
+		this._main.style.left = this._fixedOffset.left + 'px' ;
+		this._main.style.width
+		this._main.addClassName(this._options.fixedClass) ;
+		this._fixed = true ;
+	},
+	
+	/**
+	 * Reset the element
+	 */
+	_reset : function() {
+		this._main.removeClassName(this._options.fixedClass) ;
+		if (this._initialProperties.keys().length) {
+			this._initialProperties.each(function(property) {
+				this._main.style[property[0]] = property[1] ;
+			}, this) ;
+		}
+		this._fixed = false ;
+	},
+	
+	/**
+	 * Calulate current scroll offset of the element
+	 */
+	_scrollOffset : function() {
+		var cumulative = this._main.cumulativeScrollOffset() ;
+		cumulative.top = cumulative.top - this._parentOffset.top ;
+		cumulative.left = cumulative.left - this._parentOffset.left ;
+		return cumulative ;
 	}
 }) ;
