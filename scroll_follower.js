@@ -64,8 +64,8 @@ ScrollFollower = Class.create({
 		
 		this._options = $H({
 			'autoGhost' : true,
-			'fixedClass' : 'follow_me_fixed',
-			'absolutizedClass' : 'follow_me_absolutized'
+			'fixedClass' : 'scroll_follower_fixed',
+			'absolutizedClass' : 'scroll_follower_absolutized'
 		}).merge(options).toObject() ;
 		
 		// Save the initial offset
